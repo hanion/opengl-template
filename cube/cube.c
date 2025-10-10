@@ -21,32 +21,57 @@ static double global_scroll_y;
 void draw_mesh(Mesh* mesh, Transform* transform, Camera* camera) {
 	M4f model = calculate_transform_matrix(transform);
 	M4f mvp = m4f_mul_m4f(camera->view_projection_matrix, model);
-	glUniformMatrix4fv(mesh->mvp_location, 1, GL_TRUE, &mvp.m[0][0]);
+
 	glBindVertexArray(mesh->vao);
-	glUniform3f(mesh->color_location, 0.8f, 0.2f, 0.2f);
+	glUniformMatrix4fv(mesh->loc_mvp,   1, GL_TRUE, &mvp.m[0][0]);
+	glUniformMatrix4fv(mesh->loc_model, 1, GL_TRUE, &model.m[0][0]);
+	glUniform3f(mesh->loc_color, 0.8f, 0.2f, 0.2f);
+	glUniform3f(mesh->loc_light_dir, -0.5f, -1.0f, -0.5f);
+
 	glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_INT, 0);
 	//glDrawElements(GL_POINTS, mesh.indices_count, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
 Mesh cube_generate_mesh() {
-	static const Vertex vertices[8] = {
-		{ .pos = {-0.5f, -0.5f, -0.5f} },
-		{ .pos = { 0.5f, -0.5f, -0.5f} },
-		{ .pos = { 0.5f,  0.5f, -0.5f} },
-		{ .pos = {-0.5f,  0.5f, -0.5f} },
-		{ .pos = {-0.5f, -0.5f,  0.5f} },
-		{ .pos = { 0.5f, -0.5f,  0.5f} },
-		{ .pos = { 0.5f,  0.5f,  0.5f} },
-		{ .pos = {-0.5f,  0.5f,  0.5f} }
+	static const Vertex vertices[24] = {
+		{ .pos = {-0.5f, -0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f} },
+		{ .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f} },
+		{ .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f} },
+		{ .pos = {-0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f} },
+
+		{ .pos = {-0.5f, -0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f} },
+		{ .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f} },
+		{ .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f} },
+		{ .pos = {-0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f} },
+
+		{ .pos = {-0.5f, -0.5f, -0.5f}, .normal = {-1.0f,  0.0f,  0.0f} },
+		{ .pos = {-0.5f, -0.5f,  0.5f}, .normal = {-1.0f,  0.0f,  0.0f} },
+		{ .pos = {-0.5f,  0.5f,  0.5f}, .normal = {-1.0f,  0.0f,  0.0f} },
+		{ .pos = {-0.5f,  0.5f, -0.5f}, .normal = {-1.0f,  0.0f,  0.0f} },
+
+		{ .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 1.0f,  0.0f,  0.0f} },
+		{ .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 1.0f,  0.0f,  0.0f} },
+		{ .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 1.0f,  0.0f,  0.0f} },
+		{ .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 1.0f,  0.0f,  0.0f} },
+
+		{ .pos = {-0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  1.0f,  0.0f} },
+		{ .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  1.0f,  0.0f} },
+		{ .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  1.0f,  0.0f} },
+		{ .pos = {-0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  1.0f,  0.0f} },
+
+		{ .pos = {-0.5f, -0.5f, -0.5f}, .normal = { 0.0f, -1.0f,  0.0f} },
+		{ .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 0.0f, -1.0f,  0.0f} },
+		{ .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 0.0f, -1.0f,  0.0f} },
+		{ .pos = {-0.5f, -0.5f,  0.5f}, .normal = { 0.0f, -1.0f,  0.0f} }
 	};
 	static const Index indices[36] = {
-		0, 1, 2, 2, 3, 0,
-		5, 4, 7, 7, 6, 5,
-		4, 0, 3, 3, 7, 4,
-		1, 5, 6, 6, 2, 1,
-		3, 2, 6, 6, 7, 3,
-		4, 5, 1, 1, 0, 4
+		0,  1,  2,   0,  2,  3,
+		4,  6,  5,   4,  7,  6,
+		8,  9, 10,   8, 10, 11,
+		12, 14, 13,  12, 15, 14,
+		16, 18, 17,  16, 19, 18,
+		20, 21, 22,  20, 22, 23
 	};
 	Mesh cube_mesh = {0};
 	cube_mesh.vertices = (Vertex*)vertices;
@@ -70,10 +95,12 @@ void mesh_init(Mesh* mesh, GLuint program) {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
 	glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, col));
-	//glEnableVertexAttribArray(1);
-	mesh->mvp_location   = glGetUniformLocation(program, "mvp");
-	mesh->color_location = glGetUniformLocation(program, "u_color");
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glEnableVertexAttribArray(1);
+	mesh->loc_mvp   = glGetUniformLocation(program, "u_mvp");
+	mesh->loc_model = glGetUniformLocation(program, "u_model");
+	mesh->loc_color = glGetUniformLocation(program, "u_color");
+	mesh->loc_light_dir = glGetUniformLocation(program, "u_light_dir");
 }
 
 
@@ -172,7 +199,7 @@ int main(void) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	glFrontFace(GL_CW);
+	//glFrontFace(GL_CW);
 
 
 	Camera cam = {0};
@@ -187,10 +214,13 @@ int main(void) {
 		.scale = {1, 1, 1}
 	};
 
+	Transform cube_transform2 = cube_transform;
+	cube_transform2.position.x += 2;
+
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
-	float sensitivity = 0.002f; // adjust for speed
+	float sensitivity = 0.002f;
 
 	double time = glfwGetTime();
 	double prev_time = 0.0;
@@ -265,15 +295,22 @@ int main(void) {
 		glUseProgram(program);
 
 		cam.aspect = (float)width/(float)height;
+		camera_update(&cam);
 
-		float cube_speed = 0.01f;
+		float cube_speed = 2.0f * delta_time;
 		cube_transform.rotation.x += cube_speed;
 		cube_transform.rotation.y += cube_speed;
 		cube_transform.rotation.z += cube_speed;
 		//cube_transform.rotation = (V3f){time, time * 0.6f, 0};
-		camera_update(&cam);
 
 		draw_mesh(&cube_mesh, &cube_transform, &cam);
+
+		cube_transform2.rotation.x += 0.5f * cube_speed;
+		cube_transform2.rotation.y += 0.5f * cube_speed;
+		cube_transform2.rotation.z += 0.5f * cube_speed;
+		draw_mesh(&cube_mesh, &cube_transform2, &cam);
+
+
 
 		glfwSwapBuffers(window);
 

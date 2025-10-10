@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Werror -O0
+CFLAGS = -Wall -Werror -O1
 LDFLAGS = -lGL -lglfw -lm
 
 

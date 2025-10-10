@@ -16,11 +16,11 @@ typedef struct {
 } M4f;
 
 typedef struct {
-	V3f position, rotation,scale;
+	V3f position, rotation, scale;
 } Transform;
 
 typedef struct {
-	V3f pos;
+	V3f pos, normal;
 } Vertex;
 
 typedef uint32_t Index;
@@ -30,7 +30,7 @@ typedef struct {
 	size_t vertices_count;
 	size_t indices_count;
 	GLuint vao, vbo, ebo;
-	GLint mvp_location, color_location;
+	GLint loc_mvp, loc_color, loc_model, loc_light_dir;
 } Mesh;
 
 
